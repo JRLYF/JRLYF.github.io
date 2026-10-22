@@ -58,17 +58,34 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  fonts: [
-    {
-      name: "Google Sans Code",
-      cssVariable: "--font-google-sans-code",
-      provider: fontProviders.google(),
-      fallbacks: ["monospace"],
-      weights: [300, 400, 500, 600, 700],
-      styles: ["normal", "italic"],
-      formats: ["woff", "ttf"],
+  
+fonts: [
+  {
+    name: "Google Sans Code",
+    cssVariable: "--font-google-sans-code",
+    provider: fontProviders.local(),
+    fallbacks: ["monospace"],
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: [
+            "./node_modules/@fontsource/google-sans-code/files/google-sans-code-latin-400-normal.woff",
+          ],
+        },
+        {
+          weight: 700,
+          style: "normal",
+          src: [
+            "./node_modules/@fontsource/google-sans-code/files/google-sans-code-latin-700-normal.woff",
+          ],
+        },
+      ],
     },
-  ],
+  },
+],
+
   env: {
     schema: {
       PUBLIC_GOOGLE_SITE_VERIFICATION: envField.string({

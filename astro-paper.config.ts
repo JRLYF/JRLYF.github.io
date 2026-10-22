@@ -5,7 +5,7 @@ export default defineAstroPaperConfig({
     url: "https://astro-paper.pages.dev/",
     title: "AstroPaper",
     description: "A minimal, responsive and SEO-friendly Astro blog theme.",
-    author: "Sat Naing",
+    author: "Yifan Liu",
     profile: "https://satna.ing",
     ogImage: "default-og.jpg",
     lang: "en",
