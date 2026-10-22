@@ -2,16 +2,16 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://astro-paper.pages.dev/",
-    title: "AstroPaper",
-    description: "A minimal, responsive and SEO-friendly Astro blog theme.",
-    author: "Yifan Liu",
-    profile: "https://satna.ing",
-    ogImage: "default-og.jpg",
-    lang: "en",
-    timezone: "Asia/Bangkok",
-    dir: "ltr",
-  },
+  url: "https://jrlyf.github.io/",
+  title: "Yifan's Blog",
+  description: "Research notes and projects.",
+  author: "Yifan Liu",
+  profile: "https://jrlyf.github.io/",
+  ogImage: "default-og.jpg",
+  lang: "en",
+  timezone: "Asia/Shanghai",
+  dir: "ltr",
+},
   posts: {
     perPage: 4,
     perIndex: 4,
@@ -24,7 +24,7 @@ export default defineAstroPaperConfig({
     showBackButton: true,
     editPost: {
       enabled: true,
-      url: "https://github.com/satnaing/astro-paper/edit/main/",
+      url: "https://github.com/JRLYF/JRLYF.github.io/edit/main/",
     },
     search: "pagefind",
   },
