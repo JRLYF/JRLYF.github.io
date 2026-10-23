@@ -1,135 +1,177 @@
 ---
 import { getCollection } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
-import IconRss from "@/assets/icons/IconRss.svg";
-import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import Socials from "@/components/Socials.astro";
 import Card from "@/components/Card.astro";
-import LinkButton from "@/components/LinkButton.astro";
+import SectionIcon from "@/components/SectionIcon.astro";
+import EmptyState from "@/components/EmptyState.astro";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import { categories } from "@/data/categories";
 import { getSortedPosts } from "@/utils/getSortedPosts";
-import { useTranslations } from "@/i18n";
+import { getBlogUrl } from "@/utils/getBlogUrl";
 import config from "@/config";
 
-const { socials, posts: postsConfig } = config;
-
+const posts = getSortedPosts(await getCollection("posts"));
 const locale = Astro.currentLocale ?? config.site.lang;
-const t = useTranslations(locale);
-
-const posts = await getCollection("posts");
-const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
-const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
-const homePath = getRelativeLocaleUrl(locale, "");
+const recent = posts.slice(0, config.posts.perIndex);
 ---
 
 <Layout>
   <Header />
   <main
     id="main-content"
-    data-layout="index"
-    data-home-path={homePath}
-    class="app-layout my-1"
+    class="app-layout home-main"
+    data-backurl={getRelativeLocaleUrl(locale, "")}
   >
-    <section id="hero" class="border-border border-b pt-8 pb-6">
-      <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        你好！
-      </h1>
-      <a
-        target="_blank"
-        href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
-        class="inline-block"
-        aria-label="RSS Feed"
-        title="RSS Feed"
-      >
-        <IconRss
-          width={20}
-          height={20}
-          class="stroke-accent scale-125 stroke-3 rtl:-rotate-90"
-        />
-        <span class="sr-only">RSS Feed</span>
-      </a>
-
-      <p>
-        这是我的个人主页
-      </p>
-      <p class="mt-2">
-        Read the blog posts or check{" "}
-        <LinkButton
-          class="hover:text-accent underline decoration-dashed underline-offset-4"
-          href="https://github.com/satnaing/astro-paper#readme"
+    <section class="home-hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow hero-eyebrow">
+          <span class="status-dot"></span> HELLO, I'M {
+            config.site.author.toUpperCase()
+          }
+        </p>
+        <h1 id="hero-title">
+          A place for<br /><em>curiosity.</em><span
+            class="hero-asterisk"
+            aria-hidden="true">✳</span
+          >
+        </h1>
+        <p class="hero-description">
+          在阅读中探索，在游戏中漫游，<br
+            class="desktop-break"
+          />也用镜头，收藏日常的片刻。
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href={getBlogUrl()}
+            >走进我的博客 <IconArrowRight width={18} height={18} /></a
+          >
+          <a class="subtle-link" href={getRelativeLocaleUrl(locale, "about")}
+            >关于我 <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </div>
+      <aside class="hero-aside" aria-label="这个空间">
+        <span class="aside-label eyebrow">A SMALL CORNER OF THE INTERNET</span>
+        <div class="orbit-art" aria-hidden="true">
+          <svg viewBox="0 0 240 230" fill="none"
+            ><ellipse
+              cx="120"
+              cy="115"
+              rx="98"
+              ry="42"
+              transform="rotate(-35 120 115)"></ellipse><ellipse
+              cx="120"
+              cy="115"
+              rx="98"
+              ry="42"
+              transform="rotate(35 120 115)"></ellipse><ellipse
+              cx="120"
+              cy="115"
+              rx="98"
+              ry="42"
+              transform="rotate(90 120 115)"></ellipse><circle
+              cx="120"
+              cy="115"
+              r="6"
+              class="orbit-center"></circle><circle
+              cx="197"
+              cy="65"
+              r="4"
+              class="orbit-point"></circle></svg
+          >
+        </div>
+        <p>Reading, playing, seeing.<br /><span>And always becoming.</span></p>
+      </aside>
+    </section>
+    <section class="collections-section" aria-labelledby="collections-title">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">THE COLLECTIONS</span><h2
+            id="collections-title"
+          >
+            兴趣的几个切面<span class="heading-period">.</span>
+          </h2>
+        </div><span class="section-caption">Things I spend time with</span>
+      </div>
+      <div class="collection-grid">
+        {
+          categories
+            .filter(category => category.id !== "notes")
+            .map(category => {
+              const count = posts.filter(
+                post => post.data.category === category.id
+              ).length;
+              return (
+                <a
+                  class={`collection-link collection-${category.id}`}
+                  href={getBlogUrl(category.id)}
+                >
+                  <div class="collection-top">
+                    <>
+                      <SectionIcon name={category.icon} />
+                      <span class="eyebrow">{category.number} /</span>
+                    </>
+                  </div>
+                  <>
+                    <h3>{category.title}</h3>
+                    <span class="collection-subtitle">{category.subtitle}</span>
+                  </>
+                  <p>{category.description}</p>
+                  <div class="collection-bottom">
+                    <>
+                      <span>
+                        {String(count).padStart(2, "0")}{" "}
+                        <span class="collection-count-label">
+                          {category.id === "photo" ? "STORIES" : "ENTRIES"}
+                        </span>
+                      </span>
+                      <IconArrowRight width={19} height={19} />
+                    </>
+                  </div>
+                </a>
+              );
+            })
+        }
+      </div>
+    </section>
+    <section class="recent-section" aria-labelledby="recent-title">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">RECENT ENTRIES</span><h2 id="recent-title">
+            最近的记录<span class="heading-period">.</span>
+          </h2>
+        </div><a class="text-link" href={getBlogUrl()}
+          >全部文章 <span aria-hidden="true">↗</span></a
         >
-          README
-        </LinkButton>{" "}
-        for more info.
-      </p>
+      </div>
       {
-        socials.length > 0 && (
-          <div class="mt-4 flex max-sm:flex-col sm:items-center">
-            <div class="me-2 mb-1 whitespace-nowrap sm:mb-0">
-              {t.home.socialLinks}:
-            </div>
-            <Socials />
-          </div>
+        recent.length > 0 ? (
+          <ul class="post-list">
+            {recent.map(post => (
+              <Card variant="h3" {...post} />
+            ))}
+          </ul>
+        ) : (
+          <EmptyState />
         )
       }
     </section>
-
-    {
-      featuredPosts.length > 0 && (
-        <section
-          id="featured"
-          class:list={[
-            "pt-12 pb-6",
-            { "border-border border-b": recentPosts.length > 0 },
-          ]}
-        >
-          <h2 class="text-2xl font-semibold tracking-wide">
-            {t.home.featured}
-          </h2>
-          <ul>
-            {featuredPosts.map(data => (
-              <Card variant="h3" {...data} />
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    {
-      recentPosts.length > 0 && (
-        <section id="recent-posts" class="pt-12 pb-6">
-          <h2 class="text-2xl font-semibold tracking-wide">
-            {t.home.recentPosts}
-          </h2>
-          <ul>
-            {recentPosts.slice(0, postsConfig.perIndex).map(data => (
-              <Card variant="h3" {...data} />
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    <div class="my-8 text-center">
-      <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
-        {t.home.allPosts}
-        <IconArrowRight class="inline-block rtl:-rotate-180" />
-      </LinkButton>
+    <div class="home-colophon">
+      <span class="tiny-star" aria-hidden="true">✳</span><p>
+        不必急着抵达，先把沿途记下来。
+      </p><a href={getBlogUrl("notes")}
+        >随手记一点 <span aria-hidden="true">↗</span></a
+      >
     </div>
   </main>
   <Footer />
 </Layout>
-
 <script>
   document.addEventListener("astro:page-load", () => {
-    const indexLayout = (document.querySelector("#main-content") as HTMLElement)
-      ?.dataset;
-    const baseRoot = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-    if (indexLayout?.layout) {
-      sessionStorage.setItem("backUrl", indexLayout.homePath ?? baseRoot);
-    }
+    const main = document.querySelector<HTMLElement>(".home-main");
+    if (main?.dataset.backurl)
+      sessionStorage.setItem("backUrl", main.dataset.backurl);
   });
 </script>

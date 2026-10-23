@@ -15,6 +15,8 @@ import BackButton from "./_components/BackButton.astro";
 import BackToTopButton from "./_components/BackToTopButton.astro";
 import AdjacentPostNav from "./_components/AdjacentPostNav.astro";
 import config from "@/config";
+import { getCategory } from "@/data/categories";
+import { getBlogUrl } from "@/utils/getBlogUrl";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts");
@@ -110,12 +112,19 @@ const ogImage = ogImageUrl
 
   <main
     id="main-content"
-    class:list={["app-layout", { "mt-8": !config.features.showBackButton }]}
+    class:list={[
+      "app-layout article-main",
+      { "mt-8": !config.features.showBackButton },
+    ]}
     data-pagefind-body
   >
+    <a class="article-category eyebrow" href={getBlogUrl(post.data.category)}
+      >{getCategory(post.data.category).title}
+      <span aria-hidden="true">↗</span></a
+    >
     <h1
       style={{ viewTransitionName: toTransitionName(post.id) }}
-      class="text-accent inline-block text-2xl font-bold sm:text-3xl"
+      class="article-title"
     >
       {title}
     </h1>

@@ -1,4 +1,3 @@
-/* Register design tokens for Tailwind v4 */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -7,28 +6,38 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --font-app: var(--font-google-sans-code);
+  --font-app:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: var(--font-google-sans-code), monospace;
 }
 
-/* Light theme values */
 :root,
 [data-theme="light"] {
-  --background: #fdfdfd;
-  --foreground: #282728;
-  --accent: #006cac;
-  --accent-foreground: #ffffff;
-  --muted: #e6e6e6;
-  --muted-foreground: #6b7280;
-  --border: #ece9e9;
+  color-scheme: light;
+  --background: #f9f8f5;
+  --foreground: #292c28;
+  --accent: #53674e;
+  --accent-foreground: #fff;
+  --muted: #efeee8;
+  --muted-foreground: #787b73;
+  --border: #dedfd6;
+  --surface: #f2f2ec;
+  --surface-hover: #eeefe7;
+  --serif:
+    "Iowan Old Style", "Baskerville", "Palatino Linotype", "Book Antiqua",
+    Georgia, "Songti SC", "SimSun", serif;
 }
 
-/* Dark theme values */
 [data-theme="dark"] {
-  --background: #212737;
-  --foreground: #eaedf3;
-  --accent: #ff6b01;
-  --accent-foreground: #ffffff;
-  --muted: #343f60;
-  --muted-foreground: #afb9ca;
-  --border: #ab4b08;
+  color-scheme: dark;
+  --background: #1b1e1b;
+  --foreground: #e6e7df;
+  --accent: #b3c6a3;
+  --accent-foreground: #1b1e1b;
+  --muted: #2a2e28;
+  --muted-foreground: #a2a89c;
+  --border: #383e34;
+  --surface: #22271f;
+  --surface-hover: #2b3227;
 }

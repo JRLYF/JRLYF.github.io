@@ -1,3 +1,18 @@
+# Yifan’s Space
+
+个人主页与分类博客：Paper Reading / Game / Photo / Anime / Notes。
+
+- 在线写作台：`/studio`，使用说明见 [STUDIO.md](docs/STUDIO.md)
+- 开始写作：[写作与维护指南](docs/WRITING.md)
+- 文章模板：[content-templates](content-templates/)
+- 个人介绍：`src/content/pages/about.md`
+- 站点配置：`astro-paper.config.ts`
+- 本地运行：`pnpm dev`；构建检查：`pnpm build`
+
+基于 AstroPaper。以下保留原主题说明作为参考。
+
+---
+
 # AstroPaper 📄
 
 ![AstroPaper](public/default-og.jpg)

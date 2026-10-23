@@ -6,6 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb.astro";
 import Main from "@/components/Main.astro";
 import Footer from "@/components/Footer.astro";
 import Tag from "@/components/Tag.astro";
+import EmptyState from "@/components/EmptyState.astro";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
@@ -26,6 +27,14 @@ const t = useTranslations(locale);
     <ul class="flex flex-wrap gap-6">
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
     </ul>
+    {
+      tags.length === 0 && (
+        <EmptyState
+          title="线索，会慢慢连起来。"
+          description="文章发布后，使用过的标签会自动收录在这里。"
+        />
+      )
+    }
   </Main>
 
   <Footer />

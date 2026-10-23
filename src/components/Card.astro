@@ -1,31 +1,76 @@
 ---
+import { Image } from "astro:assets";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import type { CollectionEntry } from "astro:content";
 import { getPostUrl } from "@/utils/getPostPaths";
+import { getBlogUrl } from "@/utils/getBlogUrl";
+import { getCategory } from "@/data/categories";
+import { slugifyStr } from "@/utils/slugify";
 import { toTransitionName } from "@/utils/toTransitionName";
-import Datetime from "./Datetime.astro";
-
-type Props = {
-  variant?: "h2" | "h3";
-} & CollectionEntry<"posts">;
-
-const { variant: Heading = "h2", id, data, filePath } = Astro.props;
-
-const { title, description, ...props } = data;
+import config from "@/config";
+type Props = { variant?: "h2" | "h3" } & CollectionEntry<"posts">;
+const { variant: Heading = "h2", id, data, filePath, body = "" } = Astro.props;
+const date = data.modDatetime ?? data.pubDatetime;
+const dateLabel = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: data.timezone ?? config.site.timezone,
+}).format(date);
+const category = getCategory(data.category);
+const cjkCount = (body.match(/[\u4e00-\u9fff]/g) ?? []).length;
+const wordCount = (body.match(/[a-zA-Z0-9]+/g) ?? []).length;
+const minutes = Math.max(1, Math.ceil(cjkCount / 350 + wordCount / 220));
+const postUrl = getPostUrl(id, filePath, Astro.currentLocale);
 ---
 
-<li class="my-6">
-  <a
-    href={getPostUrl(id, filePath, Astro.currentLocale)}
-    class:list={[
-      "text-accent inline-block text-lg font-medium",
-      "decoration-dashed underline-offset-4 hover:underline",
-      "focus-visible:no-underline focus-visible:underline-offset-0",
-    ]}
-  >
-    <Heading transition:name={toTransitionName(id)}>
-      {title}
-    </Heading>
-  </a>
-  <Datetime {...props} />
-  <p>{description}</p>
+<li class:list={["post-entry", { "has-cover": !!data.cover }]}>
+  <div class="post-entry-content">
+    <div class="post-entry-meta">
+      <a href={getBlogUrl(category.id)}>{category.title}</a><time
+        datetime={date.toISOString()}>{dateLabel}</time
+      >{data.featured && <span class="featured-label">精选</span>}
+    </div>
+    <a class="post-entry-link" href={postUrl}
+      ><Heading transition:name={toTransitionName(id)}>{data.title}</Heading
+      ><span aria-hidden="true">↗</span></a
+    >
+    <p>{data.description}</p>
+    <div class="post-entry-bottom">
+      <span>{minutes} min read</span><ul aria-label="文章标签">
+        {
+          data.tags.map(tag => (
+            <li>
+              <a
+                href={getRelativeLocaleUrl(
+                  Astro.currentLocale ?? config.site.lang,
+                  `tags/${slugifyStr(tag)}`
+                )}
+              >
+                #{tag}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+  {
+    data.cover && (
+      <a class="post-cover" href={postUrl} tabindex="-1" aria-hidden="true">
+        {typeof data.cover === "string" ? (
+          <img
+            src={data.cover}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            width="640"
+            height="480"
+          />
+        ) : (
+          <Image src={data.cover} alt="" loading="lazy" width={640} />
+        )}
+      </a>
+    )
+  }
 </li>

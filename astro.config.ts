@@ -25,12 +25,14 @@ export default defineConfig({
     mdx(),
     sitemap({
       filter: page =>
-        config.features?.showArchives !== false || !page.endsWith("/archives/"),
+        !/\/studio\/?$/.test(page) &&
+        (config.features?.showArchives !== false ||
+          !page.endsWith("/archives/")),
     }),
   ],
   i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+    locales: ["zh-CN"],
+    defaultLocale: "zh-CN",
     routing: {
       prefixDefaultLocale: false,
     },
@@ -58,33 +60,33 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  
-fonts: [
-  {
-    name: "Google Sans Code",
-    cssVariable: "--font-google-sans-code",
-    provider: fontProviders.local(),
-    fallbacks: ["monospace"],
-    options: {
-      variants: [
-        {
-          weight: 400,
-          style: "normal",
-          src: [
-            "./node_modules/@fontsource/google-sans-code/files/google-sans-code-latin-400-normal.woff",
-          ],
-        },
-        {
-          weight: 700,
-          style: "normal",
-          src: [
-            "./node_modules/@fontsource/google-sans-code/files/google-sans-code-latin-700-normal.woff",
-          ],
-        },
-      ],
+
+  fonts: [
+    {
+      name: "Google Sans Code",
+      cssVariable: "--font-google-sans-code",
+      provider: fontProviders.local(),
+      fallbacks: ["monospace"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/google-sans-code/files/google-sans-code-latin-400-normal.woff",
+            ],
+          },
+          {
+            weight: 700,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/google-sans-code/files/google-sans-code-latin-700-normal.woff",
+            ],
+          },
+        ],
+      },
     },
-  },
-],
+  ],
 
   env: {
     schema: {

@@ -1,0 +1,249 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { getCollection, type CollectionEntry } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Card from "@/components/Card.astro";
+import EmptyState from "@/components/EmptyState.astro";
+import SectionIcon from "@/components/SectionIcon.astro";
+import { categories, getCategory, type CategoryId } from "@/data/categories";
+import { getSortedPosts } from "@/utils/getSortedPosts";
+import { getBlogUrl } from "@/utils/getBlogUrl";
+import { getUniqueTags } from "@/utils/getUniqueTags";
+import config from "@/config";
+
+export const getStaticPaths = (async () => {
+  const allPosts = getSortedPosts(await getCollection("posts"));
+  const sections: (CategoryId | undefined)[] = [
+    undefined,
+    ...categories.map(category => category.id),
+  ];
+  return sections.flatMap(categoryId => {
+    const selected = categoryId
+      ? allPosts.filter(post => post.data.category === categoryId)
+      : allPosts;
+    const totalPages = Math.max(
+      1,
+      Math.ceil(selected.length / config.posts.perPage)
+    );
+    return Array.from({ length: totalPages }, (_, index) => ({
+      params: {
+        path:
+          [categoryId, index > 0 ? String(index + 1) : undefined]
+            .filter(Boolean)
+            .join("/") || undefined,
+      },
+      props: {
+        categoryId,
+        posts: selected.slice(
+          index * config.posts.perPage,
+          (index + 1) * config.posts.perPage
+        ),
+        total: selected.length,
+        currentPage: index + 1,
+        totalPages,
+        counts: Object.fromEntries(
+          categories.map(category => [
+            category.id,
+            allPosts.filter(post => post.data.category === category.id).length,
+          ])
+        ),
+        allCount: allPosts.length,
+        tags: getUniqueTags(selected),
+      },
+    }));
+  });
+}) satisfies GetStaticPaths;
+
+type Props = {
+  categoryId?: CategoryId;
+  posts: CollectionEntry<"posts">[];
+  total: number;
+  currentPage: number;
+  totalPages: number;
+  counts: Record<string, number>;
+  allCount: number;
+  tags: ReturnType<typeof getUniqueTags>;
+};
+const {
+  categoryId,
+  posts,
+  total,
+  currentPage,
+  totalPages,
+  counts,
+  allCount,
+  tags,
+} = Astro.props;
+const category = categoryId ? getCategory(categoryId) : undefined;
+const locale = Astro.currentLocale ?? config.site.lang;
+---
+
+<Layout
+  title={`${category?.title ?? "Blog"} | ${config.site.title}`}
+  description={category?.detail ??
+    "阅读、游戏、影像与生活随笔。所有值得留下的记录。"}
+>
+  <Header />
+  <main
+    id="main-content"
+    class="app-layout journal-main"
+    data-backurl={getBlogUrl(categoryId, currentPage)}
+  >
+    <header class="page-intro">
+      <p class="eyebrow">
+        <span class="status-dot"></span>
+        {
+          category
+            ? `THE COLLECTION / ${category.number}`
+            : "NOTES & OBSERVATIONS"
+        }
+      </p>
+      <h1>
+        {category?.title ?? "The journal"}<span class="heading-period">.</span>
+      </h1>
+      <p class="page-description">
+        {
+          category?.detail ??
+            "阅读的线索，游戏里的世界，镜头下的日常。都收在这里。"
+        }
+      </p>
+    </header>
+    <nav class="category-nav" aria-label="博客分类">
+      <a href={getBlogUrl()} aria-current={!categoryId ? "page" : undefined}
+        >All<span>{allCount}</span></a
+      >
+      {
+        categories.map(item => (
+          <a
+            href={getBlogUrl(item.id)}
+            aria-current={categoryId === item.id ? "page" : undefined}
+          >
+            {item.title}
+            <span>{counts[item.id]}</span>
+          </a>
+        ))
+      }
+    </nav>
+    <div class="journal-grid">
+      <section aria-label="文章列表">
+        <div class="journal-toolbar">
+          <span>第 {currentPage} 页 · {total} 篇记录</span>{
+            config.features.showArchives && (
+              <a href={getRelativeLocaleUrl(locale, "archives")}>
+                按年份浏览 <span aria-hidden="true">↗</span>
+              </a>
+            )
+          }
+        </div>
+        {
+          posts.length > 0 ? (
+            <ul class="post-list">
+              {posts.map(post => (
+                <Card {...post} />
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              title={category?.emptyTitle}
+              description={category?.emptyDescription}
+              icon={category?.icon}
+            />
+          )
+        }
+        {
+          totalPages > 1 && (
+            <nav class="journal-pagination" aria-label="文章分页">
+              {currentPage > 1 ? (
+                <a href={getBlogUrl(categoryId, currentPage - 1)}>← 上一页</a>
+              ) : (
+                <span />
+              )}
+              <span>
+                {currentPage} / {totalPages}
+              </span>
+              {currentPage < totalPages ? (
+                <a href={getBlogUrl(categoryId, currentPage + 1)}>下一页 →</a>
+              ) : (
+                <span />
+              )}
+            </nav>
+          )
+        }
+        <p class="journal-endnote">
+          {
+            posts.length > 0
+              ? "写下来的，都会慢慢成为自己的。"
+              : "故事还在发生，记录会慢慢长出来。"
+          }
+        </p>
+      </section>
+      <aside class="journal-sidebar" aria-label="分类与标签">
+        <section>
+          <h2>Collections<span class="heading-period">.</span></h2><p
+            class="sidebar-caption"
+          >
+            沿着兴趣，慢慢探索。
+          </p>
+          <ul class="sidebar-collections">
+            {
+              categories.map(item => (
+                <li>
+                  <a
+                    href={getBlogUrl(item.id)}
+                    aria-current={categoryId === item.id ? "page" : undefined}
+                  >
+                    <>
+                      <SectionIcon name={item.icon} />
+                      <span>
+                        <>
+                          <strong>{item.title}</strong>
+                          <span>{item.subtitle}</span>
+                        </>
+                      </span>
+                      <span class="sidebar-count">
+                        {String(counts[item.id]).padStart(2, "0")}
+                      </span>
+                    </>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+        <section class="sidebar-tags">
+          <h2>Tags<span class="heading-period">.</span></h2>{
+            tags.length > 0 ? (
+              <ul>
+                {tags.slice(0, 12).map(tag => (
+                  <li>
+                    <a href={getRelativeLocaleUrl(locale, `tags/${tag.tag}`)}>
+                      #{tag.tagName}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p class="sidebar-caption">标签会随着记录慢慢积累。</p>
+            )
+          }<a class="text-link" href={getRelativeLocaleUrl(locale, "tags")}
+            >查看全部标签 <span aria-hidden="true">↗</span></a>
+        </section>
+        <p class="sidebar-footnote">
+          <span aria-hidden="true">✳</span> A work in progress,<br />just like
+          everything else.
+        </p>
+      </aside>
+    </div>
+  </main>
+  <Footer />
+</Layout>
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const main = document.querySelector<HTMLElement>(".journal-main");
+    if (main?.dataset.backurl)
+      sessionStorage.setItem("backUrl", main.dataset.backurl);
+  });
+</script>

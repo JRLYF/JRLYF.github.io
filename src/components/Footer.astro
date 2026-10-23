@@ -1,30 +1,40 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import Socials from "./Socials.astro";
-import { useTranslations } from "@/i18n";
-
-type Props = {
-  noMarginTop?: boolean;
-} & HTMLAttributes<"footer">;
-
-const { noMarginTop = false, class: className, ...attrs } = Astro.props;
-
-const t = useTranslations(Astro.currentLocale);
-const currentYear = new Date().getFullYear();
+import { getRelativeLocaleUrl } from "astro:i18n";
+import config from "@/config";
+type Props = { noMarginTop?: boolean } & HTMLAttributes<"footer">;
+const { noMarginTop: _noMarginTop, class: className, ...attrs } = Astro.props;
+const year = new Date().getFullYear();
+const locale = Astro.currentLocale ?? config.site.lang;
 ---
 
-<footer
-  class:list={["app-layout", { "mt-auto": !noMarginTop }, className]}
-  {...attrs}
->
-  <div
-    class="border-border flex flex-col items-center justify-between border-t py-6 sm:flex-row-reverse sm:py-4"
-  >
-    <Socials />
-    <div class="my-2 flex flex-col items-center whitespace-nowrap sm:flex-row">
-      <span>{t.footer.copyright} &#169; {currentYear}</span>
-      <span class="hidden sm:inline">&nbsp;|&nbsp;</span>
-      <span>{t.footer.allRightsReserved}</span>
+<footer class:list={["site-footer app-layout", className]} {...attrs}>
+  <div class="footer-inner">
+    <div>
+      <span class="footer-name">© {year} {config.site.author}</span><span
+        class="footer-note">Stay curious. Keep a record.</span
+      >
     </div>
+    <nav aria-label="页脚导航">
+      <a href={getRelativeLocaleUrl(locale, "studio")} data-astro-reload
+        >Write</a
+      >
+      {
+        config.socials.map(social => (
+          <a href={social.url} target="_blank" rel="noopener noreferrer">
+            {social.name === "github" ? "GitHub" : social.name}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        ))
+      }
+      <a href={getRelativeLocaleUrl(locale, "rss.xml")}
+        >RSS <span aria-hidden="true">↗</span></a
+      >
+      {
+        config.features.showArchives && (
+          <a href={getRelativeLocaleUrl(locale, "archives")}>Archive</a>
+        )
+      }
+    </nav>
   </div>
 </footer>

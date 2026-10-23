@@ -1,0 +1,444 @@
+---
+import { categories } from "@/data/categories";
+import { studioConfig } from "@/data/studio";
+import { getAssetPath } from "@/utils/withBase";
+import "@/styles/global.css";
+import "@/styles/studio.css";
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <title>Writing Studio · Yifan's Space</title>
+    <link rel="icon" type="image/svg+xml" href={getAssetPath("favicon.svg")} />
+  </head>
+  <body class="studio-body">
+    <header class="studio-header">
+      <div class="studio-brand">
+        <button
+          id="toggle-library"
+          class="studio-icon mobile-library"
+          aria-label="打开文章列表">☰</button
+        ><a href={getAssetPath("")} class="studio-logo" aria-label="返回主页"
+          >y.</a
+        ><div>
+          <strong>Writing Studio</strong><span
+            >A little space to put things into words.</span
+          >
+        </div>
+      </div>
+      <div class="studio-header-actions">
+        <span id="save-status" role="status">正在打开写作台…</span><button
+          id="connect-button"
+          class="studio-button">连接 GitHub</button
+        ><button id="publish-button" class="studio-button studio-primary"
+          >发布 <span aria-hidden="true">↗</span></button
+        >
+      </div>
+    </header>
+    <div id="studio-error" class="studio-error" role="alert" hidden></div>
+    <div class="studio-shell">
+      <aside class="studio-library" id="library" aria-label="文章库">
+        <div class="library-heading">
+          <span class="eyebrow">YOUR NOTEBOOK</span><button
+            id="new-document"
+            class="studio-icon"
+            aria-label="新建记录">＋</button
+          >
+        </div>
+        <button id="new-entry" class="studio-button new-entry-button"
+          >＋ 新建记录</button
+        >
+        <label class="library-search"
+          ><span class="sr-only">查找记录</span><input
+            id="document-filter"
+            type="search"
+            placeholder="查找记录…"
+          /></label
+        >
+        <div class="library-group-heading">
+          <h2>本机记录</h2><span id="local-count">0</span>
+        </div><ul id="local-documents" class="document-list"></ul>
+        <div class="library-group-heading">
+          <h2>GitHub 文章</h2><button
+            id="refresh-library"
+            class="studio-icon"
+            aria-label="刷新 GitHub 文章">↻</button
+          >
+        </div><ul id="remote-documents" class="document-list"></ul><p
+          id="remote-hint"
+          class="library-hint"
+        >
+          连接 GitHub 后，可在不同设备继续写作。
+        </p>
+        <div class="library-bottom">
+          <a
+            href={`https://github.com/${studioConfig.repository}`}
+            target="_blank"
+            rel="noopener noreferrer">{studioConfig.repository} ↗</a
+          ><div>
+            <button id="studio-theme" class="studio-text-button"
+              >切换深色</button
+            ><button id="logout-button" class="studio-text-button" hidden
+              >退出登录</button
+            >
+          </div>
+        </div>
+      </aside>
+      <main class="studio-workspace" id="main-content">
+        <div class="workspace-heading">
+          <div class="document-location">
+            <span class="status-dot"></span><span id="document-state"
+              >新的记录</span
+            >
+          </div><div class="workspace-actions">
+            <div class="studio-tabs" role="group" aria-label="编辑模式">
+              <button id="mode-write" aria-pressed="true">写作</button><button
+                id="mode-preview"
+                aria-pressed="false">预览</button
+              >
+            </div><button
+              id="toggle-inspector"
+              class="studio-button"
+              aria-label="文章设置"
+              >设置 <span aria-hidden="true">⚙</span></button
+            >
+          </div>
+        </div>
+        <div
+          class="writing-toolbar"
+          id="writing-toolbar"
+          role="toolbar"
+          aria-label="文字排版"
+        >
+          <select id="block-format" aria-label="段落样式"
+            ><option value="paragraph">正文</option><option value="h1"
+              >大标题</option
+            ><option value="h2">章节标题</option><option value="h3"
+              >小标题</option
+            ></select
+          >
+          <div class="toolbar-divider"></div>
+          <button data-command="bold" aria-label="加粗" title="加粗 · ⌘/Ctrl B"
+            ><b>B</b></button
+          ><button data-command="italic" aria-label="斜体" title="斜体"
+            ><i>I</i></button
+          ><button data-command="underline" aria-label="下划线" title="下划线"
+            ><u>U</u></button
+          ><button data-command="strike" aria-label="删除线" title="删除线"
+            ><s>S</s></button
+          ><button data-command="highlight" aria-label="高亮" title="高亮"
+            ><mark>H</mark></button
+          ><button data-command="code" aria-label="行内代码" title="行内代码"
+            >&lt;/&gt;</button
+          >
+          <div class="toolbar-divider"></div>
+          <button
+            data-command="bulletList"
+            aria-label="无序列表"
+            title="无序列表">• ≡</button
+          ><button
+            data-command="orderedList"
+            aria-label="有序列表"
+            title="有序列表">1. ≡</button
+          ><button data-command="blockquote" aria-label="引用" title="引用"
+            >❞</button
+          ><button
+            data-command="horizontalRule"
+            aria-label="分隔线"
+            title="分隔线">—</button
+          >
+          <select id="text-align" aria-label="文字对齐"
+            ><option value="left">左对齐</option><option value="center"
+              >居中</option
+            ><option value="right">右对齐</option><option value="justify"
+              >两端对齐</option
+            ></select
+          >
+          <div class="toolbar-divider"></div>
+          <button id="insert-link" aria-label="插入链接" title="插入链接"
+            >↗</button
+          ><button
+            id="insert-image"
+            aria-label="插入图片"
+            title="插入图片，也可以直接粘贴">▧</button
+          ><button data-command="table" aria-label="插入表格" title="插入表格"
+            >▦</button
+          ><button data-command="codeBlock" aria-label="代码块" title="代码块"
+            >{}</button
+          >
+          <div class="toolbar-divider"></div><button
+            data-command="undo"
+            aria-label="撤销"
+            title="撤销">↶</button
+          ><button data-command="redo" aria-label="重做" title="重做">↷</button>
+        </div>
+        <div id="image-tools" class="context-toolbar" hidden>
+          <span>图片</span><label
+            >宽度 <select id="image-width"
+              ><option value="100">100%</option><option value="75">75%</option
+              ><option value="50">50%</option><option value="25">25%</option
+              ></select
+            ></label
+          ><select id="image-align" aria-label="图片对齐"
+            ><option value="left">靠左</option><option value="center"
+              >居中</option
+            ><option value="right">靠右</option></select
+          ><input
+            id="image-caption"
+            aria-label="图片说明"
+            placeholder="图片说明…"
+          /><input
+            id="image-alt"
+            aria-label="图片替代文字"
+            placeholder="图片内容描述…"
+          /><button id="image-set-cover">设为封面</button><button
+            id="image-remove">移除</button
+          >
+        </div>
+        <div id="table-tools" class="context-toolbar" hidden>
+          <span>表格</span><button data-command="addRowAfter">＋ 行</button
+          ><button data-command="addColumnAfter">＋ 列</button><button
+            data-command="deleteRow">删除行</button
+          ><button data-command="deleteColumn">删除列</button><button
+            data-command="deleteTable">删除表格</button
+          >
+        </div>
+        <div class="paper-stage">
+          <article class="writing-paper" id="writing-paper">
+            <p class="eyebrow paper-eyebrow" id="paper-category">
+              NOTES / 随笔与想法
+            </p><textarea
+              id="document-title"
+              rows="1"
+              placeholder="给这篇记录一个标题"
+              aria-label="文章标题"></textarea><div class="paper-rule">
+            </div><div id="rich-editor" class="rich-editor"></div><div
+              id="article-preview"
+              class="app-prose studio-article-preview"
+              hidden
+            >
+            </div>
+          </article>
+        </div>
+        <div class="writing-status">
+          <span id="word-count">0 字 · 1 分钟阅读</span><span
+            >支持直接粘贴图片 <kbd>⌘/Ctrl V</kbd><span class="status-separator"
+              >/</span
+            ><kbd>⌘/Ctrl S</kbd> 保存草稿</span
+          ><button id="export-document" class="studio-text-button"
+            >导出 Markdown ↗</button
+          >
+        </div>
+      </main>
+      <aside class="studio-inspector" id="inspector" aria-label="文章设置">
+        <div class="inspector-heading">
+          <span class="eyebrow">THE DETAILS</span><button
+            id="close-inspector"
+            class="studio-icon"
+            aria-label="关闭文章设置">×</button
+          >
+        </div><h2>把记录整理好<span class="heading-period">.</span></h2>
+        <fieldset id="metadata-fields">
+          <label class="studio-field"
+            >分类<select id="document-category"
+              >{
+                categories.map(category => (
+                  <option value={category.id}>
+                    {category.title} · {category.subtitle}
+                  </option>
+                ))
+              }</select
+            ></label
+          >
+          <label class="studio-field"
+            >一句话简介<textarea
+              id="document-description"
+              rows="3"
+              maxlength="300"
+              placeholder="这篇记录，想留下些什么？"></textarea></label
+          >
+          <label class="studio-field"
+            >标签<input
+              id="document-tags"
+              placeholder="用逗号分隔，例如：anime, 随笔"
+            /></label
+          >
+          <label class="studio-field"
+            >文件名<input
+              id="document-slug"
+              placeholder="根据标题自动生成"
+            /><small>同步后保持文件名不变。</small></label
+          >
+          <label class="studio-field"
+            >发布时间<input id="document-date" type="datetime-local" /><small
+              >按当前设备时区输入，未来时间会定时展示。</small
+            ></label
+          >
+          <label class="studio-field"
+            >正文行距<select id="document-line-height"
+              ><option value="1.7">紧凑 · 1.7</option><option value="2"
+                >舒适 · 2.0</option
+              ><option value="2.3">宽松 · 2.3</option></select
+            ></label
+          >
+          <div class="studio-field">
+            <span>文章封面</span><div class="cover-preview" id="cover-preview">
+              <span>从图片中选择一张封面</span>
+            </div><div class="cover-actions">
+              <button id="choose-cover" type="button">选择图片</button><button
+                id="remove-cover"
+                type="button">移除封面</button
+              >
+            </div>
+          </div>
+          <label class="studio-checkbox"
+            ><input id="document-featured" type="checkbox" /> 设为精选记录</label
+          >
+        </fieldset>
+        <div class="sync-panel">
+          <div>
+            <strong>GitHub 同步</strong><span id="connection-status"
+              >未连接</span
+            >
+          </div><label class="studio-checkbox"
+            ><input id="auto-sync" type="checkbox" /> 修改后自动同步</label
+          ><p>
+            开启后，停止输入 10
+            秒自动同步。新记录先作为草稿保存；发布后的修改会更新网站。
+          </p><button id="sync-draft-button" class="studio-button"
+            >同步为草稿</button
+          ><button id="reload-remote" class="studio-text-button" hidden
+            >从 GitHub 重新载入</button
+          ><p id="sync-result" role="status"></p><a
+            id="commit-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            hidden>查看本次提交 ↗</a
+          ><a
+            href={`https://github.com/${studioConfig.repository}/actions`}
+            target="_blank"
+            rel="noopener noreferrer">查看网站部署进度 ↗</a
+          >
+        </div>
+      </aside>
+    </div>
+    <button
+      id="drawer-backdrop"
+      class="drawer-backdrop"
+      aria-label="关闭侧栏"
+      hidden></button>
+    <input
+      type="file"
+      id="image-file"
+      accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+      multiple
+      hidden
+    />
+    <input
+      type="file"
+      id="cover-file"
+      accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+      hidden
+    />
+    <dialog id="connect-dialog" class="studio-dialog">
+      <form id="connect-form">
+        <button
+          type="button"
+          class="dialog-close studio-icon"
+          id="close-connect"
+          aria-label="关闭连接窗口">×</button
+        ><span class="dialog-mark" aria-hidden="true">y.</span><p
+          class="eyebrow"
+        >
+          YOUR WORDS, YOUR SPACE
+        </p><h1>让记录，随处继续<span class="heading-period">.</span></h1><p
+          class="dialog-description"
+        >
+          用 GitHub 连接你的文章库。文字、图片和草稿，都可以在不同设备继续编辑。
+        </p><div class="connection-repository">
+          <span aria-hidden="true">⌘</span><div>
+            <strong>{studioConfig.repository}</strong><span
+              >{studioConfig.branch} · 文章和图片一起提交</span
+            >
+          </div>
+        </div><label class="studio-field"
+          >GitHub 访问令牌<input
+            id="github-token"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="github_pat_…"
+            required
+          /></label
+        ><label class="studio-checkbox"
+          ><input id="remember-session" type="checkbox" checked /> 在当前标签页保持登录</label
+        ><p class="token-note">
+          令牌仅发送给 GitHub。关闭标签页或退出登录后清除，不会写入网站源码。
+        </p><p id="connect-error" role="alert"></p><button
+          type="submit"
+          id="confirm-connect"
+          class="studio-button studio-primary"
+          >连接 GitHub <span aria-hidden="true">↗</span></button
+        ><button type="button" id="try-writing" class="studio-text-button"
+          >先写一篇，稍后连接</button
+        ><details class="token-help">
+          <summary>第一次使用，如何创建令牌？</summary><ol>
+            <li>
+              打开 <a
+                href="https://github.com/settings/personal-access-tokens/new"
+                target="_blank"
+                rel="noopener noreferrer">GitHub 令牌设置 ↗</a
+              >，创建 Fine-grained token。
+            </li><li>
+              Repository access 仅选择 <strong>{studioConfig.repository}</strong
+              >。
+            </li><li>
+              Repository permissions 中，将 <strong>Contents</strong> 设置为 <strong
+                >Read and write</strong
+              >。
+            </li><li>生成后粘贴到上方，完成连接。</li>
+          </ol>
+        </details>
+      </form>
+    </dialog>
+    <dialog id="link-dialog" class="studio-dialog link-dialog">
+      <form id="link-form">
+        <h2>插入链接</h2><label class="studio-field"
+          >链接地址<input
+            id="link-url"
+            type="text"
+            placeholder="https://…"
+          /></label
+        ><div class="dialog-actions">
+          <button type="button" id="remove-link" class="studio-button"
+            >移除链接</button
+          ><button type="button" id="cancel-link" class="studio-button"
+            >取消</button
+          ><button type="submit" class="studio-button studio-primary"
+            >确定</button
+          >
+        </div>
+      </form>
+    </dialog>
+    <div
+      id="studio-toast"
+      class="studio-toast"
+      role="status"
+      aria-live="polite"
+      hidden
+    >
+    </div>
+    <script>
+      import "@/studio/app";
+    </script>
+  </body>
+</html>
