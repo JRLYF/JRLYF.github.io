@@ -1,0 +1,111 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getPostUrl } from "@/utils/getPostPaths";
+import { entryStatuses } from "@/data/entries";
+import type { CategoryId } from "@/data/categories";
+import "@/styles/collections.css";
+interface Props {
+  posts: CollectionEntry<"posts">[];
+  category: CategoryId;
+}
+const { posts, category } = Astro.props;
+const entries = posts.filter(post => {
+  const entry = post.data.entry;
+  return (
+    entry.showcase &&
+    (category === "photo"
+      ? entry.photos.length
+      : category === "paper-reading"
+        ? entry.paper.sourceUrl || entry.paper.pdfUrl
+        : entry.subject?.type === (category === "anime" ? 2 : 4))
+  );
+});
+const cover = (post: CollectionEntry<"posts">) => {
+  const value = post.data.cover;
+  return (
+    (typeof value === "string" ? value : value?.src) ||
+    post.data.entry.subject?.image ||
+    post.data.entry.photos[0]?.src ||
+    ""
+  );
+};
+---
+
+{
+  entries.length > 0 && (
+    <section
+      class:list={["collection-showcase", `showcase-${category}`]}
+      aria-label="陈列面板"
+    >
+      <div class="showcase-heading">
+        <>
+          <h2>
+            {category === "photo"
+              ? "Albums"
+              : category === "paper-reading"
+                ? "Reading shelf"
+                : "Collection"}
+          </h2>
+          <span>{entries.length} 件记录</span>
+        </>
+      </div>
+      <div class="showcase-grid">
+        {entries.map(post => (
+          <a href={getPostUrl(post.id, post.filePath)} class="showcase-card">
+            {category !== "paper-reading" ? (
+              <div class="showcase-cover">
+                {cover(post) ? (
+                  <img
+                    src={cover(post)}
+                    alt={post.data.entry.subject?.name || post.data.title}
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                  />
+                ) : (
+                  <span class="showcase-placeholder">
+                    {post.data.title.slice(0, 1)}
+                  </span>
+                )}
+                {category === "photo" && (
+                  <span class="showcase-photo-count">
+                    {post.data.entry.photos.length} 张
+                  </span>
+                )}
+                {post.data.entry.rating !== null &&
+                  ["anime", "game"].includes(category) && (
+                    <span class="showcase-rating">
+                      ★ {post.data.entry.rating}
+                      <small>/10</small>
+                    </span>
+                  )}
+              </div>
+            ) : (
+              <span class="paper-card-mark" aria-hidden="true">
+                ↗
+              </span>
+            )}
+            <div class="showcase-card-body">
+              <strong>{post.data.title}</strong>
+              {post.data.entry.subject && (
+                <small>
+                  {[
+                    post.data.entry.subject.date.slice(0, 4),
+                    post.data.entry.subject.platform,
+                    entryStatuses[post.data.entry.status],
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </small>
+              )}
+              {category === "paper-reading" &&
+                post.data.entry.paper.authors && (
+                  <small>{post.data.entry.paper.authors}</small>
+                )}
+              {post.data.entry.comment && <p>{post.data.entry.comment}</p>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}

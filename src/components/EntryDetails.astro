@@ -1,0 +1,161 @@
+---
+import type { EntryMeta } from "@/data/entries";
+import { entryStatuses, pdfPreviewUrl } from "@/data/entries";
+import type { CategoryId } from "@/data/categories";
+import "@/styles/collections.css";
+interface Props {
+  entry: EntryMeta;
+  category: CategoryId;
+}
+const { entry, category } = Astro.props;
+const subject =
+  ["anime", "game"].includes(category) &&
+  entry.subject?.type === (category === "anime" ? 2 : 4)
+    ? entry.subject
+    : null;
+const paperSource = entry.paper.pdfUrl || entry.paper.sourceUrl;
+---
+
+{
+  subject && (
+    <section class="entry-detail subject-detail" aria-label="作品信息">
+      <div class="entry-subject">
+        {subject.image && (
+          <a
+            href={`https://bgm.tv/subject/${subject.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={subject.image}
+              alt={subject.name}
+              referrerpolicy="no-referrer"
+            />
+          </a>
+        )}
+        <div class="entry-subject-info">
+          <a
+            class="entry-subject-title"
+            href={`https://bgm.tv/subject/${subject.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {subject.name} ↗
+          </a>
+          {subject.originalName !== subject.name && (
+            <p class="entry-original-name">{subject.originalName}</p>
+          )}
+          <p>
+            {[
+              subject.date,
+              subject.platform,
+              subject.episodes ? `${subject.episodes} 话` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+          {subject.facts.map(fact => (
+            <p class="entry-fact">
+              <span>{fact.label}</span> {fact.value}
+            </p>
+          ))}
+          <div class="entry-personal-rating">
+            {entry.rating !== null && (
+              <span>
+                <strong>★ {entry.rating}</strong> / 10 <small>我的评分</small>
+              </span>
+            )}
+            {entry.status && (
+              <span class="entry-status-badge">
+                {entryStatuses[entry.status]}
+              </span>
+            )}
+          </div>
+          <small class="entry-credit">作品资料来自 Bangumi</small>
+        </div>
+      </div>
+      {subject.summary && (
+        <details class="entry-synopsis">
+          <summary>作品简介</summary>
+          <p>{subject.summary}</p>
+        </details>
+      )}
+    </section>
+  )
+}
+{
+  category !== "paper-reading" && entry.comment && (
+    <blockquote class="entry-comment">{entry.comment}</blockquote>
+  )
+}
+{
+  category === "photo" && entry.photos.length > 0 && (
+    <div class="photo-gallery" aria-label="照片集">
+      {entry.photos.map(photo => (
+        <figure>
+          <img
+            src={photo.src}
+            alt={photo.alt || photo.caption || "相册照片"}
+            width={photo.width || undefined}
+            height={photo.height || undefined}
+            loading="lazy"
+          />
+          {photo.caption && <figcaption>{photo.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  )
+}
+{
+  category === "paper-reading" && paperSource && (
+    <section class="paper-reading-source" aria-label="论文原文">
+      <div class="paper-source-toolbar">
+        <>
+          <span>原文 / PDF</span>
+          <div>
+            <>
+              <a
+                href={entry.paper.sourceUrl || paperSource}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                打开原文 ↗
+              </a>
+              <button type="button" data-reading-wide>
+                展开阅读
+              </button>
+            </>
+          </div>
+        </>
+      </div>
+      <iframe
+        src={entry.paper.pdfUrl ? pdfPreviewUrl(paperSource) : paperSource}
+        title="论文原文预览"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      />
+      <p class="paper-preview-hint">
+        来源若限制内嵌，请打开原文；作者可在写作台上传 PDF。
+      </p>
+    </section>
+  )
+}
+<script>
+  function setupReading() {
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-reading-wide]")
+      .forEach(button => {
+        if (button.dataset.ready) return;
+        button.dataset.ready = "true";
+        button.addEventListener("click", () => {
+          const expanded = button
+            .closest(".article-main")
+            ?.classList.toggle("reading-expanded");
+          button.textContent = expanded ? "还原排版" : "展开阅读";
+          button.setAttribute("aria-pressed", String(Boolean(expanded)));
+        });
+      });
+  }
+  setupReading();
+  document.addEventListener("astro:page-load", setupReading);
+</script>

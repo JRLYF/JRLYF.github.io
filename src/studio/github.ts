@@ -171,11 +171,13 @@ export class GitHubClient {
     for (const asset of assets.filter(item => referenced.has(item.path))) {
       if (snapshot.files.some(file => file.path === asset.path)) continue;
       if (
-        !asset.path.startsWith(`${studioConfig.mediaDirectory}/`) ||
+        ![studioConfig.mediaDirectory, studioConfig.documentsDirectory].some(
+          directory => asset.path.startsWith(`${directory}/`)
+        ) ||
         asset.path.includes("..")
       )
-        throw new Error("图片路径无效。");
-      progress(`正在上传图片 ${tree.length + 1}…`);
+        throw new Error("附件路径无效。");
+      progress(`正在上传附件 ${tree.length + 1}…`);
       const blob = await this.request<{ sha: string }>(
         `${this.base}/git/blobs`,
         "POST",

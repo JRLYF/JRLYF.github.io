@@ -19,6 +19,8 @@ import {
 } from "./model";
 import { loadAsset, loadDocuments, saveAsset, saveDocument } from "./storage";
 import { GitHubClient, GitHubError, type RemoteFile } from "./github";
+import { CollectionEditor } from "./collections";
+import { normalizeEntry } from "@/data/entries";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => {
   const element = document.getElementById(id);
@@ -47,6 +49,7 @@ let lastSave: Promise<void> = Promise.resolve();
 let pendingLocalWrites = 0;
 const assetUrls = new Map<string, string>();
 const assets = new Map<string, WritingAsset>();
+let collectionEditor: CollectionEditor;
 
 function toast(message: string) {
   text("studio-toast", message);
@@ -84,6 +87,8 @@ function listen(id: string, event: string, action: (event: Event) => unknown) {
 }
 function previewUrl(src: string): string {
   if (assetUrls.has(src)) return assetUrls.get(src)!;
+  if (src.startsWith("/documents/studio/"))
+    return `${studioConfig.siteUrl}${src}`;
   if (src.startsWith("/"))
     return client?.rawUrl(src) ?? `${studioConfig.siteUrl}${src}`;
   if (src.startsWith("./") && current.path)
@@ -467,6 +472,7 @@ async function openDocument(doc: WritingDocument, savePrevious = true) {
   loading = true;
   try {
     current = structuredClone(doc);
+    current.entry = normalizeEntry(current.entry);
     slugEdited = Boolean(doc.slug);
     await hydrateAssets(current);
     editor.commands.setContent(current.html, { emitUpdate: false });
@@ -476,6 +482,7 @@ async function openDocument(doc: WritingDocument, savePrevious = true) {
     input("document-slug").value = current.slug;
     input("document-slug").disabled = Boolean(current.path);
     $<HTMLSelectElement>("document-category").value = current.category;
+    $<HTMLSelectElement>("quick-category").value = current.category;
     input("document-featured").checked = current.featured;
     const date = new Date(current.pubDatetime);
     const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
@@ -487,6 +494,8 @@ async function openDocument(doc: WritingDocument, savePrevious = true) {
     updateDocumentLabels();
     updateWordCount();
     renderCover();
+    collectionEditor.render();
+    collectionEditor.setPreview(preview);
     renderLibrary();
     updateTools();
     titleHeight();
@@ -538,6 +547,8 @@ function setBusy(value: boolean) {
   editor.setEditable(!value && !preview);
   $<HTMLTextAreaElement>("document-title").readOnly = value || preview;
   $<HTMLFieldSetElement>("metadata-fields").disabled = value;
+  $<HTMLFieldSetElement>("entry-fields").disabled = value;
+  $<HTMLSelectElement>("quick-category").disabled = value || preview;
   $<HTMLButtonElement>("publish-button").disabled = value;
   $<HTMLButtonElement>("sync-draft-button").disabled = value;
 }
@@ -598,7 +609,7 @@ async function synchronize(publishState?: boolean) {
       "sync-result",
       current.draft
         ? "草稿已同步，可在其他设备继续写作。网站不会展示草稿。"
-        : "文章与图片已提交，等待 GitHub Actions 更新网站。"
+        : "文章与图片已提交，等待自动部署更新网站。"
     );
     updateDocumentLabels();
     renderLibrary();
@@ -695,6 +706,35 @@ async function insertImages(files: File[], asCover = false) {
     if (pendingImages === 0) text("save-status", "已自动保存在本机");
   }
 }
+
+async function storeAsset(asset: WritingAsset) {
+  await saveAsset(asset);
+  assets.set(asset.path, asset);
+  const path = asset.path.slice("public".length);
+  if (assetUrls.has(path)) URL.revokeObjectURL(assetUrls.get(path)!);
+  assetUrls.set(path, URL.createObjectURL(asset.blob));
+  return path;
+}
+
+collectionEditor = new CollectionEditor({
+  current: () => current,
+  changed,
+  resolve: previewUrl,
+  image: processImage,
+  store: storeAsset,
+  pending: count => {
+    pendingImages += count;
+    if (pendingImages) text("save-status", "正在处理附件…");
+    else void saveLocal().catch(showError);
+  },
+  title: value => {
+    $<HTMLTextAreaElement>("document-title").value = value;
+    $("document-title").dispatchEvent(new Event("input"));
+  },
+  cover: renderCover,
+  error: showError,
+  busy: () => busy,
+});
 
 $("writing-toolbar").addEventListener("mousedown", event => {
   if ((event.target as HTMLElement).closest("button")) event.preventDefault();
@@ -876,11 +916,17 @@ listen("document-slug", "input", () => {
   current.slug = input("document-slug").value;
   changed();
 });
-listen("document-category", "change", () => {
-  current.category = $<HTMLSelectElement>("document-category")
-    .value as CategoryId;
+function changeCategory(id: string) {
+  current.category = $<HTMLSelectElement>(id).value as CategoryId;
+  $<HTMLSelectElement>("document-category").value = current.category;
+  $<HTMLSelectElement>("quick-category").value = current.category;
+  collectionEditor.render();
   changed();
-});
+}
+listen("document-category", "change", () =>
+  changeCategory("document-category")
+);
+listen("quick-category", "change", () => changeCategory("quick-category"));
 listen("document-featured", "change", () => {
   current.featured = input("document-featured").checked;
   changed();
@@ -950,6 +996,8 @@ function setMode(isPreview: boolean) {
   $("mode-preview").setAttribute("aria-pressed", String(isPreview));
   $<HTMLTextAreaElement>("document-title").readOnly = isPreview;
   editor.setEditable(!isPreview && !busy);
+  $<HTMLSelectElement>("quick-category").disabled = isPreview || busy;
+  collectionEditor.setPreview(isPreview);
   if (isPreview) renderPreview();
   else updateTools();
 }

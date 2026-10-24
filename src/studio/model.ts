@@ -3,6 +3,7 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { categoryIds, type CategoryId } from "@/data/categories";
 import { studioConfig } from "@/data/studio";
+import { normalizeEntry, type EntryMeta } from "@/data/entries";
 
 export interface WritingDocument {
   id: string;
@@ -21,6 +22,7 @@ export interface WritingDocument {
   updatedAt: string;
   syncedAt: string | null;
   extra: Record<string, unknown>;
+  entry: EntryMeta;
 }
 
 export interface WritingAsset {
@@ -49,6 +51,7 @@ export function newDocument(category: CategoryId = "notes"): WritingDocument {
     updatedAt: now,
     syncedAt: null,
     extra: {},
+    entry: normalizeEntry(),
   };
 }
 
@@ -110,6 +113,7 @@ export function parseDocument(
     remoteSha: sha,
     syncedAt: sha ? doc.updatedAt : null,
     extra: meta,
+    entry: normalizeEntry(meta.entry),
   };
 }
 
@@ -144,6 +148,7 @@ export function serializeDocument(doc: WritingDocument): string {
     tags: doc.tags,
     draft: doc.draft,
     featured: doc.featured,
+    entry: normalizeEntry(doc.entry),
     ...(doc.cover ? { cover: doc.cover } : {}),
   };
   if (!doc.cover) delete (metadata as Record<string, unknown>).cover;
@@ -158,9 +163,11 @@ export function referencedMedia(doc: WritingDocument): Set<string> {
     image => image.getAttribute("src") ?? ""
   );
   if (doc.cover) urls.push(doc.cover);
+  const entry = normalizeEntry(doc.entry);
+  urls.push(...entry.photos.map(photo => photo.src), entry.paper.pdfUrl);
   return new Set(
     urls
-      .filter(url => url.startsWith("/images/studio/"))
+      .filter(url => /^\/(?:images|documents)\/studio\//.test(url))
       .map(url => `public${url}`)
   );
 }

@@ -3,6 +3,7 @@ import { z } from "astro/zod";
 import { glob } from "astro/loaders";
 import config from "@/config";
 import { categoryIds } from "@/data/categories";
+import { normalizeEntry } from "@/data/entries";
 
 export const BLOG_PATH = "src/content/posts";
 
@@ -32,6 +33,7 @@ const posts = defineCollection({
       canonicalURL: z.string().optional(),
       hideEditPost: z.boolean().optional(),
       timezone: z.string().optional(),
+      entry: z.unknown().optional().transform(normalizeEntry),
     }),
 });
 

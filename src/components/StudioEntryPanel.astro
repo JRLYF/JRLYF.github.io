@@ -1,0 +1,112 @@
+---
+import { entryStatuses } from "@/data/entries";
+---
+
+<fieldset id="entry-fields" class="entry-editor" hidden>
+  <div class="entry-editor-heading">
+    <strong id="entry-panel-title">记录卡</strong>
+    <label><input id="entry-showcase" type="checkbox" checked /> 陈列展示</label
+    >
+  </div>
+  <div id="subject-fields" hidden>
+    <div class="entry-search-row">
+      <input
+        id="bangumi-query"
+        type="search"
+        aria-label="检索 Bangumi"
+        placeholder="搜索作品名称 / 粘贴 Bangumi 链接"
+        maxlength="200"
+      />
+      <button id="bangumi-search" type="button" class="studio-button"
+        >检索 Bangumi ↗</button
+      >
+    </div>
+    <p id="bangumi-status" class="entry-hint" role="status"></p>
+    <div id="bangumi-results" class="bangumi-results"></div>
+    <div id="bangumi-selected" class="entry-subject" hidden></div>
+    <div class="entry-review-fields">
+      <label
+        >我的评分 / 10<input
+          id="entry-rating"
+          type="number"
+          min="0"
+          max="10"
+          step="0.5"
+          placeholder="未评分"
+        /></label
+      >
+      <label
+        >进度<select id="entry-status"
+          ><option value="">未设置</option>{
+            Object.entries(entryStatuses).map(([value, label]) => (
+              <option value={value}>{label}</option>
+            ))
+          }</select
+        ></label
+      >
+    </div>
+  </div>
+  <div id="gallery-fields" hidden>
+    <div class="entry-search-row" id="gallery-drop">
+      <span id="gallery-count">0 张照片</span>
+      <button id="gallery-add" type="button" class="studio-button"
+        >＋ 添加照片</button
+      >
+      <input
+        id="gallery-files"
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+        multiple
+        hidden
+      />
+    </div>
+    <div id="gallery-editor" class="gallery-editor"></div>
+  </div>
+  <div id="paper-fields" hidden>
+    <div class="entry-search-row">
+      <input
+        id="paper-source"
+        type="url"
+        aria-label="论文网址"
+        placeholder="论文网址 / arXiv / PDF 链接"
+      />
+      <button id="paper-attach" type="button" class="studio-button"
+        >添加论文</button
+      >
+    </div>
+    <div class="paper-upload-row">
+      <button id="paper-upload" type="button" class="studio-button"
+        >上传 PDF</button
+      >
+      <button
+        id="paper-read-toggle"
+        type="button"
+        class="studio-text-button"
+        hidden>边读边写</button
+      >
+      <button id="paper-remove" type="button" class="studio-text-button" hidden
+        >移除论文</button
+      >
+      <input id="paper-file" type="file" accept="application/pdf,.pdf" hidden />
+    </div>
+    <label class="entry-inline-field"
+      >PDF 链接（可选）<input
+        id="paper-pdf"
+        type="url"
+        placeholder="自动识别，也可手动填写 PDF 地址"
+      /></label
+    >
+    <label class="entry-inline-field"
+      >作者（可选）<input id="paper-authors" placeholder="论文作者" /></label
+    >
+    <p id="paper-status" class="entry-hint" role="status"></p>
+  </div>
+  <label class="entry-inline-field"
+    ><span id="entry-comment-label">简评</span><textarea
+      id="entry-comment"
+      rows="2"
+      maxlength="2000"
+      placeholder="写下一点感受…"></textarea></label
+  >
+</fieldset>
+<div id="entry-preview" class="entry-detail" hidden></div>

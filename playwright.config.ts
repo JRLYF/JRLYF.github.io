@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 const edge = "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge";
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: ["**/._*"],
   fullyParallel: false,
   workers: 1,
   timeout: 45_000,

@@ -2,8 +2,10 @@
 import { categories } from "@/data/categories";
 import { studioConfig } from "@/data/studio";
 import { getAssetPath } from "@/utils/withBase";
+import StudioEntryPanel from "@/components/StudioEntryPanel.astro";
 import "@/styles/global.css";
 import "@/styles/studio.css";
+import "@/styles/collections.css";
 ---
 
 <!doctype html>
@@ -15,7 +17,7 @@ import "@/styles/studio.css";
     <meta name="referrer" content="no-referrer" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://api.bgm.tv; frame-src 'self' blob: https:; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <title>Writing Studio · Yifan's Space</title>
     <link rel="icon" type="image/png" href={getAssetPath("favicon.png")} />
@@ -215,7 +217,40 @@ import "@/styles/studio.css";
           >
         </div>
         <div class="paper-stage">
+          <aside
+            id="paper-reader-pane"
+            class="paper-reader-pane"
+            aria-label="论文预览"
+            hidden
+          >
+            <div>
+              <a
+                id="paper-reader-link"
+                target="_blank"
+                rel="noopener noreferrer">打开原文 ↗</a
+              ><button
+                id="paper-reader-close"
+                type="button"
+                aria-label="收起论文预览">×</button>
+            </div>
+            <iframe
+              id="paper-reader-frame"
+              title="论文预览"
+              referrerpolicy="no-referrer"></iframe>
+            <p>来源若限制内嵌，可打开原文或上传 PDF。</p>
+          </aside>
           <article class="writing-paper" id="writing-paper">
+            <label class="quick-category"
+              ><span class="sr-only">记录分类</span><select
+                id="quick-category"
+                aria-label="记录分类"
+                >{
+                  categories.map(category => (
+                    <option value={category.id}>{category.title}</option>
+                  ))
+                }</select
+              ></label
+            >
             <p class="eyebrow paper-eyebrow" id="paper-category">
               NOTES / 随笔与想法
             </p><textarea
@@ -223,7 +258,8 @@ import "@/styles/studio.css";
               rows="1"
               placeholder="给这篇记录一个标题"
               aria-label="文章标题"></textarea><div class="paper-rule">
-            </div><div id="rich-editor" class="rich-editor"></div><div
+            </div><StudioEntryPanel /><div id="rich-editor" class="rich-editor">
+            </div><div
               id="article-preview"
               class="app-prose studio-article-preview"
               hidden

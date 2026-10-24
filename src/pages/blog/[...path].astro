@@ -13,6 +13,7 @@ import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getBlogUrl } from "@/utils/getBlogUrl";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import config from "@/config";
+import CollectionShowcase from "@/components/CollectionShowcase.astro";
 
 export const getStaticPaths = (async () => {
   const allPosts = getSortedPosts(await getCollection("posts"));
@@ -51,6 +52,7 @@ export const getStaticPaths = (async () => {
           ])
         ),
         allCount: allPosts.length,
+        showcasePosts: categoryId && index === 0 ? selected : [],
         tags: getUniqueTags(selected),
       },
     }));
@@ -66,6 +68,7 @@ type Props = {
   counts: Record<string, number>;
   allCount: number;
   tags: ReturnType<typeof getUniqueTags>;
+  showcasePosts: CollectionEntry<"posts">[];
 };
 const {
   categoryId,
@@ -76,6 +79,7 @@ const {
   counts,
   allCount,
   tags,
+  showcasePosts,
 } = Astro.props;
 const category = categoryId ? getCategory(categoryId) : undefined;
 const locale = Astro.currentLocale ?? config.site.lang;
@@ -112,6 +116,11 @@ const locale = Astro.currentLocale ?? config.site.lang;
         ))
       }
     </nav>
+    {
+      categoryId && categoryId !== "notes" && (
+        <CollectionShowcase posts={showcasePosts} category={categoryId} />
+      )
+    }
     <div class="journal-grid">
       <section aria-label="文章列表">
         <div class="journal-toolbar">

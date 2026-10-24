@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { writeFile } from "node:fs/promises";
+import { parse as parseYaml } from "yaml";
 
 const repository = "/repos/LYF0422/LYF0422.github.io";
 const token = "test-session-token-not-a-real-secret";
@@ -203,6 +204,294 @@ async function pasteImage(page: Page) {
   });
   await expect(page.locator(".studio-image-node img")).toBeVisible();
 }
+
+function entrySource(source: string) {
+  return parseYaml(source.match(/^---\n([\s\S]*?)\n---/)![1]);
+}
+
+async function mockBangumi(page: Page) {
+  const requests: string[] = [];
+  await page.route("https://api.bgm.tv/**", async route => {
+    const url = new URL(route.request().url());
+    requests.push(url.href);
+    expect(route.request().headers().authorization).toBeUndefined();
+    const type = url.pathname.startsWith("/search/")
+      ? Number(url.searchParams.get("type"))
+      : url.pathname.endsWith("/200")
+        ? 4
+        : 2;
+    const subject = {
+      id: type === 4 ? 200 : 100,
+      type,
+      name: type === 4 ? "Test Game" : "Test Anime",
+      name_cn: type === 4 ? "测试游戏" : "测试动画",
+      date: "2026-01-01",
+      platform: type === 4 ? "PC" : "TV",
+      eps: 12,
+      images: { common: "https://lain.bgm.tv/test-cover.jpg" },
+      summary: "来自 Bangumi 的作品简介。",
+      rating: { score: 6.2 },
+      infobox: [{ key: type === 4 ? "开发" : "导演", value: "测试作者" }],
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify(
+        url.pathname.startsWith("/search/") ? { list: [subject] } : subject
+      ),
+    });
+  });
+  await page.route("https://lain.bgm.tv/**", route =>
+    route.fulfill({
+      status: 200,
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="#77a572"/></svg>',
+    })
+  );
+  return requests;
+}
+
+function testPdf() {
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 400] /Contents 4 0 R >>",
+    "<< /Length 0 >>\nstream\n\nendstream",
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const start = Buffer.byteLength(pdf);
+  pdf += "xref\n0 5\n0000000000 65535 f \n";
+  offsets.slice(1).forEach(offset => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  return Buffer.from(
+    pdf + `trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n${start}\n%%EOF\n`
+  );
+}
+
+test("searches Bangumi anime, saves a personal rating, and restores the metadata on another session", async ({
+  page,
+}) => {
+  const api = await mockGitHub(page);
+  const requests = await mockBangumi(page);
+  await connect(page);
+  await page.locator("#quick-category").selectOption("anime");
+  await page.locator("#bangumi-query").fill("测试动画");
+  await page.locator("#bangumi-search").click();
+  await page.locator(".bangumi-result").click();
+  await expect(page.locator("#document-title")).toHaveValue("测试动画");
+  await page.locator("#entry-rating").fill("8.5");
+  await page.locator("#entry-status").selectOption("completed");
+  await page.locator("#entry-comment").fill("值得再看一次。");
+  await page.locator(".tiptap").fill("详细观后感。");
+  await page.locator("#publish-button").click();
+  await expect(page.locator("#sync-result")).toContainText("文章与图片已提交");
+  const metadata = entrySource(api.source("src/content/posts/测试动画.md")!);
+  expect(metadata.entry.subject).toMatchObject({
+    id: 100,
+    type: 2,
+    name: "测试动画",
+    facts: [{ label: "导演", value: "测试作者" }],
+  });
+  expect(metadata.entry).toMatchObject({
+    rating: 8.5,
+    comment: "值得再看一次。",
+    status: "completed",
+    showcase: true,
+  });
+  expect(requests.some(url => url.includes("type=2"))).toBe(true);
+  // Clear only the local article cache, then load the actual serialized GitHub file.
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve, reject) => {
+      const r = indexedDB.open("yifan-writing-studio", 1);
+      r.onsuccess = () => {
+        const tx = r.result.transaction("documents", "readwrite");
+        tx.objectStore("documents").clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      };
+    });
+  });
+  await page.reload();
+  await page
+    .locator("#remote-documents button")
+    .filter({ hasText: "测试动画" })
+    .click();
+  await expect(page.locator("#entry-rating")).toHaveValue("8.5");
+  await expect(page.locator("#bangumi-selected")).toContainText("测试动画");
+  await expect(page.locator("#entry-comment")).toHaveValue("值得再看一次。");
+});
+
+test("searches games with the correct Bangumi type and supports direct subject links", async ({
+  page,
+}) => {
+  const api = await mockGitHub(page);
+  const requests = await mockBangumi(page);
+  await connect(page);
+  await page.locator("#quick-category").selectOption("game");
+  await page.locator("#bangumi-query").fill("测试游戏");
+  await page.locator("#bangumi-search").click();
+  await page.locator(".bangumi-result").click();
+  await expect(page.locator("#bangumi-selected")).toContainText("测试游戏");
+  await page.locator("#bangumi-query").fill("https://bgm.tv/subject/200");
+  await page.locator("#bangumi-query").press("Enter");
+  await expect(page.locator("#bangumi-status")).toHaveText("");
+  await page.locator("#entry-rating").fill("9");
+  await page.locator("#entry-showcase").uncheck();
+  await page.locator("#publish-button").click();
+  await expect(page.locator("#sync-result")).toContainText("文章与图片已提交");
+  expect(requests.some(url => url.includes("type=4"))).toBe(true);
+  expect(
+    entrySource(api.source("src/content/posts/测试游戏.md")!).entry
+  ).toMatchObject({
+    showcase: false,
+    rating: 9,
+    subject: { type: 4, platform: "PC" },
+  });
+});
+
+test("uploads, captions and reorders an album and commits all referenced photos together", async ({
+  page,
+}) => {
+  const api = await mockGitHub(page);
+  await connect(page);
+  await page.locator("#quick-category").selectOption("photo");
+  await write(page, "Photo album");
+  const png = await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 80;
+    canvas.height = 60;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#a8c789";
+    ctx.fillRect(0, 0, 80, 60);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  await page.locator("#gallery-files").setInputFiles([
+    {
+      name: "first.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(png, "base64"),
+    },
+    {
+      name: "second.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(png, "base64"),
+    },
+  ]);
+  await expect(page.locator(".gallery-editor-card")).toHaveCount(2);
+  await page.getByLabel("照片 1 简评").fill("第一张的光影");
+  await page.getByLabel("照片 2 简评").fill("第二张的街景");
+  await page
+    .locator(".gallery-editor-card")
+    .nth(1)
+    .getByRole("button", { name: "↑", exact: true })
+    .click();
+  await expect(page.getByLabel("照片 1 简评")).toHaveValue("第二张的街景");
+  await page
+    .locator(".gallery-editor-card")
+    .first()
+    .getByRole("button", { name: "设为封面", exact: true })
+    .click();
+  await page.locator("#entry-comment").fill("十月的小相册");
+  await page.locator("#publish-button").click();
+  await expect(page.locator("#sync-result")).toContainText("文章与图片已提交");
+  const metadata = entrySource(api.source("src/content/posts/photo-album.md")!);
+  expect(
+    metadata.entry.photos.map((p: { caption: string }) => p.caption)
+  ).toEqual(["第二张的街景", "第一张的光影"]);
+  expect(metadata.cover).toBe(metadata.entry.photos[0].src);
+  expect(api.media()).toHaveLength(2);
+  await page.reload();
+  await expect(page.locator(".gallery-editor-card")).toHaveCount(2);
+  await page.locator("#mode-preview").click();
+  await expect(page.locator("#entry-preview img")).toHaveCount(2);
+  await expect(page.locator("#entry-preview")).toContainText("第二张的街景");
+});
+
+test("reads arXiv beside notes, uploads a PDF, and restores the committed PDF and notes", async ({
+  page,
+}) => {
+  const api = await mockGitHub(page);
+  await page.route("https://arxiv.org/**", route =>
+    route.fulfill({ contentType: "application/pdf", body: testPdf() })
+  );
+  await connect(page);
+  await page.locator("#quick-category").selectOption("paper-reading");
+  await write(page, "Paper notes", "这篇文章的方法与我的想法。");
+  await page.locator("#paper-source").fill("https://arxiv.org/abs/1810.04703");
+  await page.locator("#paper-attach").click();
+  await expect(page.locator("#paper-reader-frame")).toHaveAttribute(
+    "src",
+    "https://arxiv.org/pdf/1810.04703#zoom=page-width&view=FitH&navpanes=0"
+  );
+  await expect(page.locator(".with-paper-reader")).toBeVisible();
+  await page.locator("#paper-authors").fill("Huang et al.");
+  await page.locator("#entry-comment").fill("稀疏 IMU 的时序建模。");
+  await page.locator("#paper-file").setInputFiles({
+    name: "reading.pdf",
+    mimeType: "application/pdf",
+    buffer: testPdf(),
+  });
+  await expect(page.locator("#paper-reader-frame")).toHaveAttribute(
+    "src",
+    /^blob:/
+  );
+  await page.locator("#publish-button").click();
+  await expect(page.locator("#sync-result")).toContainText("文章与图片已提交");
+  const source = api.source("src/content/posts/paper-notes.md")!;
+  const metadata = entrySource(source);
+  expect(metadata.entry.paper).toMatchObject({
+    sourceUrl: "https://arxiv.org/abs/1810.04703",
+    authors: "Huang et al.",
+  });
+  expect(metadata.entry.paper.pdfUrl).toMatch(/^\/documents\/studio\/.+\.pdf$/);
+  expect(
+    [...api.files.keys()].filter(path =>
+      path.startsWith("public/documents/studio/")
+    )
+  ).toHaveLength(1);
+  expect(source).not.toContain("blob:");
+  expect(source).toContain("这篇文章的方法");
+  await page.reload();
+  await expect(page.locator("#paper-reader-frame")).toHaveAttribute(
+    "src",
+    /^blob:/
+  );
+  await expect(page.locator(".tiptap")).toContainText("这篇文章的方法");
+  await page.locator("#paper-remove").click();
+  await expect(page.locator("#paper-reader-pane")).not.toBeVisible();
+});
+
+test("retains a review after Bangumi fails and keeps the phone album within the viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("https://api.bgm.tv/**", route => route.abort());
+  await page.goto("/studio/");
+  await page.locator("#try-writing").click();
+  await page.locator("#quick-category").selectOption("anime");
+  await page.locator("#entry-comment").fill("网络失败也保留的简评");
+  await page.locator("#bangumi-query").fill("测试");
+  await page.locator("#bangumi-search").click();
+  await expect(page.locator("#studio-error")).toContainText(
+    "暂时无法连接 Bangumi"
+  );
+  await expect(page.locator("#entry-comment")).toHaveValue(
+    "网络失败也保留的简评"
+  );
+  await page.locator("#quick-category").selectOption("photo");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBe(true);
+});
 
 test("pastes and formats images, atomically publishes an Anime article, and restores local drafts", async ({
   page,

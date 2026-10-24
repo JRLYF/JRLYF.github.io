@@ -17,6 +17,7 @@ import AdjacentPostNav from "./_components/AdjacentPostNav.astro";
 import config from "@/config";
 import { getCategory } from "@/data/categories";
 import { getBlogUrl } from "@/utils/getBlogUrl";
+import EntryDetails from "@/components/EntryDetails.astro";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts");
@@ -151,7 +152,40 @@ const ogImage = ogImageUrl
         "prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)",
       ]}
     >
-      <Content />
+      {
+        post.data.category === "paper-reading" &&
+        (post.data.entry.paper.pdfUrl || post.data.entry.paper.sourceUrl) ? (
+          <div class="paper-reading-layout">
+            <EntryDetails
+              entry={post.data.entry}
+              category={post.data.category}
+            />
+            <div class="paper-notes">
+              {post.data.entry.paper.authors && (
+                <p class="entry-original-name">
+                  {post.data.entry.paper.authors}
+                </p>
+              )}
+              {post.data.entry.comment && (
+                <blockquote class="entry-comment">
+                  {post.data.entry.comment}
+                </blockquote>
+              )}
+              <Content />
+            </div>
+          </div>
+        ) : (
+          <>
+            <>
+              <EntryDetails
+                entry={post.data.entry}
+                category={post.data.category}
+              />
+              <Content />
+            </>
+          </>
+        )
+      }
     </article>
 
     <hr class="my-8 border-dashed" />
