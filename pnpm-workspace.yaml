@@ -1,3 +1,6 @@
+packages:
+  - "."
+
 nodeLinker: hoisted
 packageImportMethod: copy
 preferSymlinkedExecutables: false
@@ -5,3 +8,4 @@ preferSymlinkedExecutables: false
 allowBuilds:
   esbuild: true
   sharp: true
+  workerd: true
