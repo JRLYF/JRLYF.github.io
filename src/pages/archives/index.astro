@@ -34,14 +34,7 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
   <Breadcrumb />
 
   <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc}>
-    {
-      filteredPosts.length === 0 && (
-        <EmptyState
-          title="时间轴，从下一篇开始。"
-          description="文章发布后，会按年份与月份自动整理在这里。"
-        />
-      )
-    }
+    {filteredPosts.length === 0 && <EmptyState />}
     {
       Object.entries(
         getPostsByGroupCondition(filteredPosts, post =>

@@ -1,16 +1,10 @@
 ---
 import SectionIcon from "./SectionIcon.astro";
-type Props = { title?: string; description?: string; icon?: string };
-const {
-  title = "空白，也是一个好的开始。",
-  description = "一些阅读，一些体验，一些值得留下的瞬间。慢慢写，慢慢积累。",
-  icon = "pen",
-} = Astro.props;
+type Props = { title?: string; icon?: string };
+const { title = "暂无文章", icon = "pen" } = Astro.props;
 ---
 
 <div class="empty-state">
-  <div class="empty-icon"><SectionIcon name={icon} /></div>
-  <h3>{title}</h3>
-  <p>{description}</p>
-  <span class="eyebrow">A little more, soon.</span>
+  <span class="empty-icon"><SectionIcon name={icon} /></span>
+  <p>{title}</p>
 </div>

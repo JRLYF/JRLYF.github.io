@@ -83,8 +83,7 @@ const locale = Astro.currentLocale ?? config.site.lang;
 
 <Layout
   title={`${category?.title ?? "Blog"} | ${config.site.title}`}
-  description={category?.detail ??
-    "阅读、游戏、影像与生活随笔。所有值得留下的记录。"}
+  description={`${category?.title ?? "Blog"} · ${config.site.author}`}
 >
   <Header />
   <main
@@ -93,23 +92,9 @@ const locale = Astro.currentLocale ?? config.site.lang;
     data-backurl={getBlogUrl(categoryId, currentPage)}
   >
     <header class="page-intro">
-      <p class="eyebrow">
-        <span class="status-dot"></span>
-        {
-          category
-            ? `THE COLLECTION / ${category.number}`
-            : "NOTES & OBSERVATIONS"
-        }
-      </p>
       <h1>
-        {category?.title ?? "The journal"}<span class="heading-period">.</span>
+        {category?.title ?? "Blog"}<span class="heading-period">.</span>
       </h1>
-      <p class="page-description">
-        {
-          category?.detail ??
-            "阅读的线索，游戏里的世界，镜头下的日常。都收在这里。"
-        }
-      </p>
     </header>
     <nav class="category-nav" aria-label="博客分类">
       <a href={getBlogUrl()} aria-current={!categoryId ? "page" : undefined}
@@ -146,11 +131,7 @@ const locale = Astro.currentLocale ?? config.site.lang;
               ))}
             </ul>
           ) : (
-            <EmptyState
-              title={category?.emptyTitle}
-              description={category?.emptyDescription}
-              icon={category?.icon}
-            />
+            <EmptyState icon={category?.icon} />
           )
         }
         {
@@ -172,21 +153,10 @@ const locale = Astro.currentLocale ?? config.site.lang;
             </nav>
           )
         }
-        <p class="journal-endnote">
-          {
-            posts.length > 0
-              ? "写下来的，都会慢慢成为自己的。"
-              : "故事还在发生，记录会慢慢长出来。"
-          }
-        </p>
       </section>
       <aside class="journal-sidebar" aria-label="分类与标签">
         <section>
-          <h2>Collections<span class="heading-period">.</span></h2><p
-            class="sidebar-caption"
-          >
-            沿着兴趣，慢慢探索。
-          </p>
+          <h2>Collections</h2>
           <ul class="sidebar-collections">
             {
               categories.map(item => (
@@ -197,12 +167,7 @@ const locale = Astro.currentLocale ?? config.site.lang;
                   >
                     <>
                       <SectionIcon name={item.icon} />
-                      <span>
-                        <>
-                          <strong>{item.title}</strong>
-                          <span>{item.subtitle}</span>
-                        </>
-                      </span>
+                      <strong>{item.title}</strong>
                       <span class="sidebar-count">
                         {String(counts[item.id]).padStart(2, "0")}
                       </span>
@@ -213,9 +178,10 @@ const locale = Astro.currentLocale ?? config.site.lang;
             }
           </ul>
         </section>
-        <section class="sidebar-tags">
-          <h2>Tags<span class="heading-period">.</span></h2>{
-            tags.length > 0 ? (
+        {
+          tags.length > 0 && (
+            <section class="sidebar-tags">
+              <h2>Tags</h2>
               <ul>
                 {tags.slice(0, 12).map(tag => (
                   <li>
@@ -225,16 +191,12 @@ const locale = Astro.currentLocale ?? config.site.lang;
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p class="sidebar-caption">标签会随着记录慢慢积累。</p>
-            )
-          }<a class="text-link" href={getRelativeLocaleUrl(locale, "tags")}
-            >查看全部标签 <span aria-hidden="true">↗</span></a>
-        </section>
-        <p class="sidebar-footnote">
-          <span aria-hidden="true">✳</span> A work in progress,<br />just like
-          everything else.
-        </p>
+              <a class="text-link" href={getRelativeLocaleUrl(locale, "tags")}>
+                查看全部标签 <span aria-hidden="true">↗</span>
+              </a>
+            </section>
+          )
+        }
       </aside>
     </div>
   </main>

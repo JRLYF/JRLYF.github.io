@@ -27,14 +27,7 @@ const t = useTranslations(locale);
     <ul class="flex flex-wrap gap-6">
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
     </ul>
-    {
-      tags.length === 0 && (
-        <EmptyState
-          title="线索，会慢慢连起来。"
-          description="文章发布后，使用过的标签会自动收录在这里。"
-        />
-      )
-    }
+    {tags.length === 0 && <EmptyState title="暂无标签" />}
   </Main>
 
   <Footer />

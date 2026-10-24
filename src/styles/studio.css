@@ -38,9 +38,15 @@
   gap: 17px;
 }
 .studio-logo {
-  font: italic 38px/1 var(--serif);
-  color: var(--accent);
-  margin-top: -6px;
+  display: block;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+.studio-logo img {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
 }
 .studio-brand strong {
   display: block;
@@ -957,7 +963,8 @@
     font-size: 12px;
   }
   .studio-logo {
-    font-size: 32px;
+    width: 32px;
+    height: 32px;
   }
   .studio-header-actions {
     gap: 6px;
@@ -1080,7 +1087,7 @@
     font-size: 9px;
     padding-inline: 8px;
   }
-  .studio-logo {
+  .studio-brand > div {
     display: none;
   }
 }

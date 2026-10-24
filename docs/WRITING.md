@@ -67,9 +67,9 @@ cover: /images/my-photo.jpg
 | 颜色、字体                               | `src/styles/theme.css`                                               |
 | 布局、间距、手机适配                     | `src/styles/global.css`                                              |
 | 中文界面文案                             | `src/i18n/lang/zh-CN.ts`                                             |
-| 网站图标                                 | `public/favicon.svg`                                                 |
+| 网站图标                                 | `public/favicon.png`、`public/apple-touch-icon.png`                    |
 
-头像目前是字母占位，可在 `src/pages/about.astro` 中替换。社交链接当前只配置 GitHub；补充邮箱或其他主页后即可显示。
+头像文件为 `public/images/avatar.webp` 和 `public/images/avatar-small.webp`，分别用于主图与导航栏。社交链接在 `astro-paper.config.ts` 中配置。
 
 ## 本地查看
 

@@ -4,8 +4,7 @@ export default defineAstroPaperConfig({
   site: {
     url: "https://lyf0422.github.io/",
     title: "Yifan's Space",
-    description:
-      "A personal space for paper reading, games, photography, anime, and everyday discoveries.",
+    description: "Yifan Liu 的个人主页。",
     author: "Yifan Liu",
     profile: "https://lyf0422.github.io/",
     ogImage: "og.png",

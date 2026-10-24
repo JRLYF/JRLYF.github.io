@@ -15,15 +15,19 @@
 :root,
 [data-theme="light"] {
   color-scheme: light;
-  --background: #f9f8f5;
-  --foreground: #292c28;
-  --accent: #53674e;
+  --background: #fbfcf6;
+  --foreground: #263c5b;
+  --accent: #426938;
   --accent-foreground: #fff;
-  --muted: #efeee8;
-  --muted-foreground: #787b73;
-  --border: #dedfd6;
-  --surface: #f2f2ec;
-  --surface-hover: #eeefe7;
+  --muted: #eaf2df;
+  --muted-foreground: #687580;
+  --border: #dce4d7;
+  --surface: #f2f6eb;
+  --surface-hover: #eaf2df;
+  --lime: #cceea0;
+  --blue: #2c5288;
+  --blue-soft: #e7eef8;
+  --pink: #f5c8be;
   --serif:
     "Iowan Old Style", "Baskerville", "Palatino Linotype", "Book Antiqua",
     Georgia, "Songti SC", "SimSun", serif;
@@ -31,13 +35,17 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --background: #1b1e1b;
-  --foreground: #e6e7df;
-  --accent: #b3c6a3;
-  --accent-foreground: #1b1e1b;
-  --muted: #2a2e28;
-  --muted-foreground: #a2a89c;
-  --border: #383e34;
-  --surface: #22271f;
-  --surface-hover: #2b3227;
+  --background: #171e2a;
+  --foreground: #e6eedd;
+  --accent: #c6e99d;
+  --accent-foreground: #172431;
+  --muted: #263342;
+  --muted-foreground: #a0adba;
+  --border: #344253;
+  --surface: #1e2937;
+  --surface-hover: #283849;
+  --lime: #c6e99d;
+  --blue: #a8c4f0;
+  --blue-soft: #273c57;
+  --pink: #e9b4ae;
 }

@@ -18,9 +18,10 @@ import "@/styles/studio.css";
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <title>Writing Studio · Yifan's Space</title>
-    <link rel="icon" type="image/svg+xml" href={getAssetPath("favicon.svg")} />
+    <link rel="icon" type="image/png" href={getAssetPath("favicon.png")} />
+    <link rel="apple-touch-icon" href={getAssetPath("apple-touch-icon.png")} />
   </head>
-  <body class="studio-body">
+  <body class="studio-body" data-pagefind-ignore="all">
     <header class="studio-header">
       <div class="studio-brand">
         <button
@@ -28,12 +29,13 @@ import "@/styles/studio.css";
           class="studio-icon mobile-library"
           aria-label="打开文章列表">☰</button
         ><a href={getAssetPath("")} class="studio-logo" aria-label="返回主页"
-          >y.</a
-        ><div>
-          <strong>Writing Studio</strong><span
-            >A little space to put things into words.</span
-          >
-        </div>
+          ><img
+            src={getAssetPath("images/avatar-small.webp")}
+            width="38"
+            height="38"
+            alt=""
+          /></a
+        ><div><strong>Writing Studio</strong></div>
       </div>
       <div class="studio-header-actions">
         <span id="save-status" role="status">正在打开写作台…</span><button
