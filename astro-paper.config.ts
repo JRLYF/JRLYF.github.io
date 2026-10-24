@@ -2,12 +2,12 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://jrlyf.github.io/",
+    url: "https://lyf0422.github.io/",
     title: "Yifan's Space",
     description:
       "A personal space for paper reading, games, photography, anime, and everyday discoveries.",
     author: "Yifan Liu",
-    profile: "https://jrlyf.github.io/",
+    profile: "https://lyf0422.github.io/",
     ogImage: "og.png",
     lang: "zh-CN",
     timezone: "Asia/Shanghai",
@@ -25,14 +25,14 @@ export default defineAstroPaperConfig({
     showBackButton: true,
     editPost: {
       enabled: true,
-      url: "https://github.com/JRLYF/JRLYF.github.io/edit/main/",
+      url: "https://github.com/LYF0422/LYF0422.github.io/edit/main/",
     },
     search: "pagefind",
   },
   socials: [
     {
       name: "github",
-      url: "https://github.com/JRLYF",
+      url: "https://github.com/LYF0422",
       linkTitle: "Yifan Liu on GitHub",
     },
   ],

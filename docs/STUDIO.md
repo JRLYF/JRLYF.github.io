@@ -1,6 +1,6 @@
 # 在线写作台
 
-网站部署后访问 **https://jrlyf.github.io/studio/**。电脑和手机均可使用，页脚的 **Write** 也能进入。
+网站部署后访问 **https://lyf0422.github.io/studio/**。电脑和手机均可使用，页脚的 **Write** 也能进入。
 
 本地开发使用 `pnpm dev`，然后打开终端地址下的 `/studio`。本地预览和线上后台使用相同的 GitHub 仓库配置。
 
@@ -10,7 +10,7 @@
 
 1. 打开 [GitHub Fine-grained personal access tokens](https://github.com/settings/personal-access-tokens/new)。
 2. 为令牌取一个容易识别的名字，例如 `Yifan Writing Studio`，设置合适的有效期。
-3. Repository access 选择 **Only select repositories**，仅勾选 `JRLYF/JRLYF.github.io`。
+3. Repository access 选择 **Only select repositories**，仅勾选 `LYF0422/LYF0422.github.io`。
 4. 在 Repository permissions 中，将 **Contents** 设置为 **Read and write**。Metadata 保持默认即可。
 5. 创建令牌，在写作台的“连接 GitHub”窗口中粘贴。不要把令牌写入代码或提交到仓库。
 

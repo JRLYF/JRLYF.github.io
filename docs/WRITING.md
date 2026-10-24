@@ -79,4 +79,8 @@ pnpm dev
 
 开发地址以终端输出为准。全文搜索需要先运行一次 `pnpm build`；预览最新构建可运行 `pnpm preview`。
 
+首次打开项目先运行 `pnpm install --frozen-lockfile`。仓库使用不依赖符号链接的依赖布局，可在 ExFAT 移动硬盘上开发；`node_modules` 不需要从旧目录复制。
+
+网站地址与 Cloudflare 接入方式见 [部署指南](DEPLOYMENT.md)。
+
 原 AstroPaper 示例保存在 `examples/astro-paper/posts/`，不参与内容加载。如果需要参考 MDX、LaTeX 等写法，可以查看该目录。

@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 
-const repository = "/repos/JRLYF/JRLYF.github.io";
+const repository = "/repos/LYF0422/LYF0422.github.io";
 const token = "test-session-token-not-a-real-secret";
 const seedPath = "src/content/posts/remote-note.md";
 const seedSource =
@@ -89,7 +89,7 @@ async function mockGitHub(page: Page) {
         },
       });
     expect(request.headers().authorization).toBe(`Bearer ${token}`);
-    if (path === "/user") return respond({ login: "JRLYF", avatar_url: "" });
+    if (path === "/user") return respond({ login: "LYF0422", avatar_url: "" });
     if (path === repository)
       return respond({ permissions: { push: true }, default_branch: "main" });
     if (path === `${repository}/git/ref/heads/main`)

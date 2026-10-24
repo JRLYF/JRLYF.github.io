@@ -1,3 +1,7 @@
+nodeLinker: hoisted
+packageImportMethod: copy
+preferSymlinkedExecutables: false
+
 allowBuilds:
   esbuild: true
   sharp: true
